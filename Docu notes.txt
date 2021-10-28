@@ -1,0 +1,5 @@
+Docu notes
+
+Create Admin user
+    Give programmatic & Console access
+    
