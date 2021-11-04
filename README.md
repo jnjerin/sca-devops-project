@@ -1,4 +1,9 @@
+In this project we will deploy a 3-tier application to an EC2 server using a CI/CD pipeline set up on Jenkins. On the EC2 instance we have the following installed
 
+- Jenkins
+- Docker
+- Build tools (npm,nodejs)
+- Git
 
 # Configure application code
 * Clone the code needed for CICD
