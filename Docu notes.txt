@@ -1,5 +1,123 @@
 Docu notes
+Configure AWS
+    Create Admin and service tester users
+        Give programmatic & Console access
+        Add user to group
+        Admin-Administrator policy
+        Tester-
+        save info and keys securely
+    Provision EC2 instance (Deploy  web app on EC2)
+        Launch instance 
+            Choose base image-Amazon Linux 2 mm
+            Choose instance type - t2 micro
+            Configure network -leave defaults
+            Add storage-leave defaults
+            Add Tags - type(web server with Docker/leave defaults)
+            Configure security group - create new
+                Name: Security-group-docker-server
+                //will open ports later
+                configure IP source to access with SSH(My IP)
+            Select an existing key pair or create new one
+            Create new -docker server
+        Connect to EC2 instance with SSH
+            Save the private key pair file to .ssh folder
+                my downloads/docker-server.pem ~/.ssh/
+            Change permission to read only (ls -l)
+                chmod 400 .ssh/devops-server.pem
+            ssh -i ~/.ssh/devops-server.pem ec2-user@18.191.19.195	
+            Update the package manager tool for up to date repositories
+                sudo yum Update
+    Install Docker on EC2 instance
+        sudo yum install docker
+        docker --version
+        start docker daemon-sudo service docker start
+        Check if docker is running- ps aux | grep docker
+        Add ec2-user to docker group (to execute docker cmds)    
+                sudo usermod -aG docker ec2-user
+                confirm - groups (exit first then ssh again)/ docker run redis
+                docker ps (check no container running)      
+    Run Docker container from private repo
+        ****Practice**********
+        Pull private docker image from our private docker repo on dockerhub
+            Log in to docker - docker login
+            //ls .docker/config.json
+            docker pull <image>
+            docker images
+        Start container and bind port
+            //Bind the specified container port to server instance
+            docker run -d -p 3000:3080 <image name+tag>
+            confirm -docker ps
+        Configure access app from browser
+            //Configure firewall to open access to external traffic
+            Go to security group/Inbound rules
+            Add custom tcp port 3000 and save 
+            Check with public IP and port    
+        ****End practice**********
+    Install Jenkins on EC2 server
+Configure app codels
+    Create branches for demo
+    Create Dockerfile to build docker image //and push to private repo
+    Create Jenkinsfile to build pipeline
+        test
+        build
+        push artifact to docker hub and Nexus
+Configure Jenkins
+    Install build tools(npm,nodejs)
+        Install node and npm on the server.
+        confirm the distribution of the linux server
+        so as to downlload the correct binaries ---cat /etc/issue
+        Follow documentation to install node binaries
+        on the specific OS the server is running
+    Connect to github
+        Incase of error, install git on the running server
+        With Jenkins credentials provoder,
+        Set up credentials to authenticate to SCM, 
+    Connect Jenkins with Docker
+    Install
+    Create webhook for build triggers
+    Create multi-branch pipeline
+    Configure Jenkinsfile
+        Test other branches and master
+        Build master//build app
+        Build docker image
+        Push docker image to repo and nexus
+        Deploy application on a development server
+Deploy application on a development server
+    //Configure firewall rule to allow Jenkins server IP as a source for SSH. Allow access from Jenkins IP address. Give Jenkins server perm to access EC2 instance
+    //Allow the correct port
+    Connect to EC2 server instance from Jenkins server via ssh(ssh agent)
+        Install 'SSH Agent' plugin
+        Create credentials for EC2
+        Connect to EC2 instance via multibranch pipeline
+            Go to credentials
+            ssh username with private key 
+                ec2-server-key // ec2-user //copy pem contents to key 
+                use credentials in jenkinsfile for our pipeline, write cmds to execute on EC2 terminal after SSH connection
+            Add config in Jenkinsfile (see Jenkinsfile syntax for a plugin)
+                Go to pipeline>pipeline syntax>snippet generator>ssh agent>generate pipeline script>copy syntax
+                Go to Jenkinsfile and add syntax in deploy storage
+                    Write logic for connecting and executing docker cmds
+                        Store docker run cmd in a variable
+                        def dockerCmd = 'docker run  -p 3080:3080 -d <image:tag'
+                        //Suppress popup with cmd "-o StrictHostKeyChecking=no"
+                        sh "ssh -o StrictHostKeyChecking=no ec2-user@<public IP> ${dockerCmd}"
+                        //docker login already logged in and creds stored locally
+        Test deployment// start build//push code
+        //on EC2 terminal docker images, docker ps,
 
-Create Admin user
-    Give programmatic & Console access
-    
+    Execute docker run on EC2 instance
+
+Create Dockerfile
+
+
+
+*********************************************
+#Notes & Reminders
+-Provisioning a SQL(database runs in a private nw)
+    Web app in Public and DB in private subnet
+Internal IP range is for private subnet
+Internet gateway connects the VPC to the outside internet 
+You can open ports in subnet for outside access with (NACL)
+configure Dockerfile to expose port that will be binded on server
+
+
