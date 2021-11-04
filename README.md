@@ -1,78 +1,131 @@
-## demo app - developing with Docker
 
-In this project we will deploy a 3-tier application to an EC2 server using a CICD pipeline set up on Jenkins. 
-On the EC2 instance we have the following installed 
-- Jenkins
-- Docker
-- npm (to build the code in Jenkins)
 
-This demo app shows a simple user profile app set up using 
-- index.html with pure js and css styles
-- nodejs backend with express module
-- mongodb for data storage
+# Configure application code
+* Clone the code needed for CICD
+* Create branches for demo
+* Create Dockerfile to build docker image and push to private repo 
 
-All components are docker-based
 
-### With Docker
+# Configure AWS
 
-#### To start the application
+## Create Admin user
+Give programmatic & Console access
 
-Step 1: Create docker network
+Add user to group
 
-    docker network create mongo-network 
+Admin-Administrator policy
 
-Step 2: start mongodb 
+Save info and keys securely
 
-    docker run -d -p 27017:27017 -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=password --name mongodb --net mongo-network mongo    
+## Provision EC2 instance (Deploy  web app on EC2)
+**Launch instance** 
 
-Step 3: start mongo-express
+* Choose base image
+
+* Choose instance type - t2 micro
+
+* Configure network (leave defaults)
+
+* Add storage (leave defaults)
+
+* Add Tags(web server with Docker/leave defaults)
+
+* Configure security group - create new
+
+* Name: Security-group-docker-server
+            
+            
+## Connect to EC2 instance with SSH
+Select an existing key pair or create new one. Save the private key pair file to .ssh folder
+
+`my downloads/docker-server.pem ~/.ssh/`
+
+Change permission to read only 
+
+```
+ls -l  
+chmod 400 .ssh/devops-server.pem
+```
+
+SSH into the server with the saved key as the ec2-user created.
+
+
+## Install Docker on EC2 instance
+
+Update the package manager tool for up to date repositories and install docker.
+```
+sudo yum update
+sudo yum install docker
+docker --version
+```
+
+start docker daemon
+```
+sudo service docker start
+```
+
+Check if docker is running
+```
+ps aux | grep docker
+```
+
+Add ec2-user to docker group (to execute docker cmds)    
+
+```
+sudo usermod -aG docker ec2-user
+```
+
+Confirm group has been created and check containers (exit first then ssh again)
+```
+groups
+docker ps
+```      
     
-    docker run -d -p 8081:8081 -e ME_CONFIG_MONGODB_ADMINUSERNAME=admin -e ME_CONFIG_MONGODB_ADMINPASSWORD=password --net mongo-network --name mongo-express -e ME_CONFIG_MONGODB_SERVER=mongodb mongo-express   
+## Install Jenkins on EC2 server
+## Install git on the running server   
 
-_NOTE: creating docker-network in optional. You can start both containers in a default network. In this case, just emit `--net` flag in `docker run` command_
+# Configure Jenkins
+**Install build tools (npm,nodejs)**
 
-Step 4: open mongo-express from browser
+Install node and npm on the server. Confirm the distribution of the linux server so as to download the correct binaries 
 
-    http://localhost:8081
+    --cat /etc/issue
 
-Step 5: create `user-account` _db_ and `users` _collection_ in mongo-express
+Follow documentation to install node binaries on the specific OS the server is running.
 
-Step 6: Start your nodejs application locally - go to `app` directory of project 
+**Connect to github**
 
-    cd app
-    npm install 
-    node server.js
-    
-Step 7: Access you nodejs application UI from browser
+Configure credentials for SCM with Jenkins credentials provider to authenticate to github.
 
-    http://localhost:3000
+Create webhook for build triggers
 
-### With Docker Compose
+**Create Jenkinsfile to build pipeline**
 
-#### To start the application
+Create multi-branch pipeline
 
-Step 1: start mongodb and mongo-express
+Configure Jenkinsfile to build and deploy to server
 
-    docker-compose -f docker-compose.yaml up
-    
-_You can access the mongo-express under localhost:8080 from your browser_
-    
-Step 2: in mongo-express UI - create a new database "my-db"
+* Test
 
-Step 3: in mongo-express UI - create a new collection "users" in the database "my-db"       
-    
-Step 4: start node server 
+* Build
 
-    cd app
-    npm install
-    node server.js
-    
-Step 5: access the nodejs application from browser 
+* Push artifact to docker hub 
 
-    http://localhost:3000
+* Deploy application on a development server
 
-#### To build a docker image from the application
+**Deploying application on the server**
 
-    docker build -t my-app:1.0 .       
-    
-The dot "." at the end of the command denotes location of the Dockerfile.
+On server, configure firewall rule to allow Jenkins server IP as a source for SSH. Allow access from Jenkins IP address. 
+Give Jenkins server permission to access EC2 instance (Allow the correct port)
+
+Connect to EC2 server instance from Jenkins server via ssh (ssh agent)
+
+Install **SSH Agent** plugin. Create credentials for EC2. Connect to EC2 instance via multibranch pipeline
+
+Go to credentials and input the details to set up the key. copy pem contents to key and finish. 
+
+These credentials can be used in jenkinsfile to write cmds to execute on EC2 terminal after SSH connection.
+
+Add config in Jenkinsfile (see Jenkinsfile syntax for a plugin) Go to pipeline>pipeline syntax>snippet generator>ssh agent>generate pipeline script>copy syntax
+
+Go to Jenkinsfile and add syntax in deploy stage. Write logic for connecting and executing docker commands. Make sure docker is already logged in and its credentials stored locally in the server.
