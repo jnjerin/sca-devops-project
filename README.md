@@ -1,4 +1,4 @@
-In this project we will deploy a 3-tier application to an EC2 server using a CI/CD pipeline set up on Jenkins. On the EC2 instance we have the following installed
+In this project we will deploy a 3-tier application to an EC2 server using a CI/CD pipeline set up on Jenkins. On the EC2 instance we will have the following installed
 
 - Jenkins
 - Docker
